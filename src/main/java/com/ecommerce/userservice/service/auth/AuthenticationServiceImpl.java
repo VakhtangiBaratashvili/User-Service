@@ -28,6 +28,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -66,6 +67,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .email(requestDTO.getEmail())
                 .phoneNumber(requestDTO.getPhoneNumber())
                 .password(passwordEncoder.encode(requestDTO.getPassword()))
+                .apiKey(UUID.randomUUID().toString())
                 .build();
         userRepository.save(user);
         sendValidationEmail(user);

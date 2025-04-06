@@ -50,6 +50,8 @@ public class User implements UserDetails, Principal {
 
     private boolean enabled;
 
+    private String apiKey;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
