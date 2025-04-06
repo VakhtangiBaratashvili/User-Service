@@ -1,17 +1,18 @@
 package com.ecommerce.userservice.service.auth;
 
+import com.ecommerce.userservice.dto.request.AuthenticationRequestDTO;
+import com.ecommerce.userservice.dto.request.NotificationRequestDTO;
+import com.ecommerce.userservice.dto.request.RegistrationRequestDTO;
+import com.ecommerce.userservice.dto.response.ApiSuccessResponseDTO;
 import com.ecommerce.userservice.entity.Token;
 import com.ecommerce.userservice.entity.User;
 import com.ecommerce.userservice.enums.Role;
+import com.ecommerce.userservice.exception.ApiException;
 import com.ecommerce.userservice.repository.TokenRepository;
 import com.ecommerce.userservice.repository.UserRepository;
 import com.ecommerce.userservice.service.JwtService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ecommerce.userservice.dto.response.ApiSuccessResponseDTO;
-import com.ecommerce.userservice.dto.request.AuthenticationRequestDTO;
-import com.ecommerce.userservice.dto.request.NotificationRequestDTO;
-import com.ecommerce.userservice.dto.request.RegistrationRequestDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
@@ -54,10 +54,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public ApiSuccessResponseDTO register(RegistrationRequestDTO requestDTO) {
         if (userRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new RuntimeException("Email already in use"); // TODO
+            throw new ApiException("Email already in use", HttpStatus.BAD_REQUEST);
         }
         if (userRepository.existsByPhoneNumber(requestDTO.getPhoneNumber())) {
-            throw new RuntimeException("Phone number already in use"); // TODO
+            throw new ApiException("Phone number already in use", HttpStatus.BAD_REQUEST);
         }
         User user = User.builder()
                 .firstName(requestDTO.getFirstName())
@@ -76,7 +76,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public ApiSuccessResponseDTO authenticate(AuthenticationRequestDTO requestDTO) {
+    public ApiSuccessResponseDTO login(AuthenticationRequestDTO requestDTO) {
         Authentication authenticate = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         requestDTO.getEmail(),
@@ -93,19 +93,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    @Transactional
     public ApiSuccessResponseDTO activateAccount(String otp) {
         Token token = tokenRepository.findByToken(otp)
                 .orElseThrow(
-                        () -> new RuntimeException("Token not found") // TODO
+                        () ->  new ApiException("Token not found", HttpStatus.NOT_FOUND)
                 );
         if (LocalDateTime.now().isAfter(token.getExpiresAt())) {
             sendValidationEmail(token.getUser());
-            throw new RuntimeException("Token is expired. A new token has been sent to the same email"); // T
+            throw new ApiException("Token is expired. A new token has been sent to the same email", HttpStatus.BAD_REQUEST);
         }
         User user = userRepository.findById(token.getUser().getId())
                 .orElseThrow(
-                        () -> new RuntimeException("User not found") // TODO
+                        () -> new ApiException("User not found", HttpStatus.NOT_FOUND)
                 );
         user.setEnabled(true);
         userRepository.save(user);
@@ -122,14 +121,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         NotificationRequestDTO notificationRequestDTO = NotificationRequestDTO.builder()
                 .receiver(user.getEmail())
                 .subject("Email Verification")
-                .message("Verification code: " + newToken)
+                .message("Your verification code: " + newToken)
                 .build();
 
         ResponseEntity<Void> voidResponseEntity = sendEmail(notificationRequestDTO);
         if (voidResponseEntity.getStatusCode().equals(HttpStatus.OK)) {
             log.info("Email sent successfully");
         } else {
-            throw new RuntimeException("Email not sent"); // TODO
+            throw new ApiException("Email not sent", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -141,7 +140,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             json = objectMapper.writeValueAsString(requestDTO);
         } catch (JsonProcessingException e) {
             log.error("Error During Json Serializing: {}", e.getMessage());
-            throw new RuntimeException(e.getMessage()); // TODO
+            throw new ApiException("Error During Json Serializing: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         HttpEntity<String> entity = new HttpEntity<>(json, headers);
 
@@ -149,7 +148,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return restTemplate.exchange(notificationServiceUrl + "send-email", HttpMethod.POST, entity, Void.class);
         } catch (Exception e) {
             log.error("Error during sending email: {}", e.getMessage());
-            throw new RuntimeException(e.getMessage()); // TODO
+            throw new ApiException("Error during sending email: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

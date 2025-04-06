@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/rest/user")
+@RequestMapping("/api/rest/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
 
@@ -22,9 +22,9 @@ public class AuthenticationController {
         return new ResponseEntity<>(authenticationService.register(requestDTO), HttpStatus.ACCEPTED);
     }
 
-    @PostMapping("/authenticate")
-    public ResponseEntity<ApiSuccessResponseDTO> authenticate(@RequestBody @Valid AuthenticationRequestDTO requestDTO) {
-        return new ResponseEntity<>(authenticationService.authenticate(requestDTO), HttpStatus.OK);
+    @PostMapping("/login")
+    public ResponseEntity<ApiSuccessResponseDTO> login(@RequestBody @Valid AuthenticationRequestDTO requestDTO) {
+        return new ResponseEntity<>(authenticationService.login(requestDTO), HttpStatus.OK);
     }
 
     @GetMapping("/activate-account")

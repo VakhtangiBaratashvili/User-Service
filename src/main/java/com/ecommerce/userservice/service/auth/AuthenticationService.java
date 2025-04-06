@@ -6,6 +6,6 @@ import com.ecommerce.userservice.dto.request.RegistrationRequestDTO;
 
 public interface AuthenticationService {
     ApiSuccessResponseDTO register(RegistrationRequestDTO requestDTO);
-    ApiSuccessResponseDTO authenticate(AuthenticationRequestDTO requestDTO);
+    ApiSuccessResponseDTO login(AuthenticationRequestDTO requestDTO);
     ApiSuccessResponseDTO activateAccount(String otp);
 }
