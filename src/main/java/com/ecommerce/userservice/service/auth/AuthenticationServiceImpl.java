@@ -60,6 +60,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (userRepository.existsByPhoneNumber(requestDTO.getPhoneNumber())) {
             throw new ApiException("Phone number already in use", HttpStatus.BAD_REQUEST);
         }
+
         User user = User.builder()
                 .firstName(requestDTO.getFirstName())
                 .lastName(requestDTO.getLastName())
@@ -69,8 +70,28 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .password(passwordEncoder.encode(requestDTO.getPassword()))
                 .apiKey(UUID.randomUUID().toString())
                 .build();
+
+        String activationCode = generateActivationCode();
+        NotificationRequestDTO notificationRequestDTO = NotificationRequestDTO.builder()
+                .receiver(user.getEmail())
+                .subject("Email Verification")
+                .message("Your verification code: " + activationCode)
+                .build();
+
+        ResponseEntity<Void> response = sendEmail(notificationRequestDTO);
+
+        if (!response.getStatusCode().equals(HttpStatus.OK)) {
+            throw new ApiException("Email not sent", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         userRepository.save(user);
-        sendValidationEmail(user);
+        Token token = Token.builder()
+                .token(activationCode)
+                .createdAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusMinutes(2))
+                .user(user)
+                .build();
+        tokenRepository.save(token);
 
         return ApiSuccessResponseDTO.builder()
                 .message("Verification code has been sent to your email")
