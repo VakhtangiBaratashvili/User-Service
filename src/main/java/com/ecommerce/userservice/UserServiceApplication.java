@@ -39,12 +39,12 @@ public class UserServiceApplication {
 	public CommandLineRunner runner(UserRepository userRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
 			if (userRepository.existsByEmail(email)) {
-				log.error("Email already in use");
-				throw new ApiException("Email already in use", HttpStatus.BAD_REQUEST);
+				log.error("Failed to create admin user, email already exists");
+				throw new ApiException("Failed to create admin user, email already exists", HttpStatus.BAD_REQUEST);
 			}
 			if (userRepository.existsByPhoneNumber(phoneNumber)) {
-				log.error("Phone number already in use");
-				throw new ApiException("Phone number already in use", HttpStatus.BAD_REQUEST);
+				log.error("Failed to create admin user, phone number already exists");
+				throw new ApiException("Failed to create admin user, phone number already exists", HttpStatus.BAD_REQUEST);
 			}
 
 			User admin = User.builder()
