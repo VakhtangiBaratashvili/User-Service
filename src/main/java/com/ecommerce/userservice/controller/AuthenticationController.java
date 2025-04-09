@@ -19,7 +19,7 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiSuccessResponseDTO> register(@RequestBody @Valid RegistrationRequestDTO requestDTO) {
-        return new ResponseEntity<>(authenticationService.register(requestDTO), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(authenticationService.register(requestDTO), HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
