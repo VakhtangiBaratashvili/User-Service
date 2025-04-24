@@ -1,5 +1,6 @@
 package com.ecommerce.userservice.dto.response;
 
+import com.ecommerce.userservice.enums.Role;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,12 +12,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class ApiSuccessResponseDTO {
+public class UserResponseDTO {
 
-    private String message;
+    private Long id;
 
-    private String token;
+    private Role role;
 
-    private Object data;
+    private Boolean accountLocked;
+
+    private Boolean enabled;
 
 }

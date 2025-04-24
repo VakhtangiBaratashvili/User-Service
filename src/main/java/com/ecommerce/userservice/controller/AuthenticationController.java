@@ -1,5 +1,6 @@
 package com.ecommerce.userservice.controller;
 
+import com.ecommerce.userservice.dto.response.UserResponseDTO;
 import com.ecommerce.userservice.service.auth.AuthenticationService;
 import com.ecommerce.userservice.dto.response.ApiSuccessResponseDTO;
 import com.ecommerce.userservice.dto.request.AuthenticationRequestDTO;
@@ -30,5 +31,10 @@ public class AuthenticationController {
     @GetMapping("/activate-account")
     public ResponseEntity<ApiSuccessResponseDTO> activateAccount(@RequestParam String otp) {
         return new ResponseEntity<>(authenticationService.activateAccount(otp), HttpStatus.OK);
+    }
+
+    @GetMapping("/user/{apiKey}")
+    public ResponseEntity<UserResponseDTO> getUserByApiKey(@PathVariable String apiKey) {
+        return new ResponseEntity<>(authenticationService.getUserByApiKey(apiKey), HttpStatus.OK);
     }
 }

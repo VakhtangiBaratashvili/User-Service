@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.UUID;
 
+import static java.lang.Boolean.*;
+
 @SpringBootApplication
 @EnableJpaAuditing
 @Slf4j
@@ -54,7 +56,8 @@ public class UserServiceApplication {
 					.email(email)
 					.phoneNumber(phoneNumber)
 					.password(passwordEncoder.encode(password))
-					.enabled(true)
+					.enabled(TRUE)
+					.accountLocked(FALSE)
 					.apiKey(UUID.randomUUID().toString())
 					.build();
 

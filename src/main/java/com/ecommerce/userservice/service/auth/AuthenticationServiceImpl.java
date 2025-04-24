@@ -4,6 +4,7 @@ import com.ecommerce.userservice.dto.request.AuthenticationRequestDTO;
 import com.ecommerce.userservice.dto.request.NotificationRequestDTO;
 import com.ecommerce.userservice.dto.request.RegistrationRequestDTO;
 import com.ecommerce.userservice.dto.response.ApiSuccessResponseDTO;
+import com.ecommerce.userservice.dto.response.UserResponseDTO;
 import com.ecommerce.userservice.entity.Token;
 import com.ecommerce.userservice.entity.User;
 import com.ecommerce.userservice.enums.Role;
@@ -29,6 +30,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import static java.lang.Boolean.*;
 
 @Service
 @RequiredArgsConstructor
@@ -67,6 +70,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .role(Role.USER)
                 .email(requestDTO.getEmail())
                 .phoneNumber(requestDTO.getPhoneNumber())
+                .enabled(FALSE)
+                .accountLocked(FALSE)
                 .password(passwordEncoder.encode(requestDTO.getPassword()))
                 .apiKey(UUID.randomUUID().toString())
                 .build();
@@ -129,13 +134,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .orElseThrow(
                         () -> new ApiException("User not found", HttpStatus.NOT_FOUND)
                 );
-        user.setEnabled(true);
+        user.setEnabled(TRUE);
         userRepository.save(user);
         token.setValidatedAt(LocalDateTime.now());
         tokenRepository.save(token);
 
         return ApiSuccessResponseDTO.builder()
                 .message("Account activated")
+                .build();
+    }
+
+    @Override
+    public UserResponseDTO getUserByApiKey(String apiKey) {
+        User user = userRepository.findByApiKey(apiKey)
+                .orElseThrow(
+                        () -> new ApiException("User not found", HttpStatus.NOT_FOUND)
+                );
+
+        return UserResponseDTO.builder()
+                .role(user.getRole())
+                .enabled(user.isEnabled())
+                .accountLocked(user.getAccountLocked())
                 .build();
     }
 

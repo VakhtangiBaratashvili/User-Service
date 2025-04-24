@@ -46,10 +46,11 @@ public class User implements UserDetails, Principal {
 
     private String password;
 
-    private boolean accountLocked;
+    private Boolean accountLocked;
 
-    private boolean enabled;
+    private Boolean enabled;
 
+    @Column(unique = true, nullable = false, updatable = false)
     private String apiKey;
 
     @CreatedDate
